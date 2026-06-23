@@ -39,6 +39,16 @@
   .spin{font-size:12px;color:var(--lav);font-weight:700;}
   .done{color:var(--ok);font-weight:700;font-size:12px;}
   .sender-box{background:#fbf5ff;border:1px dashed var(--lav);border-radius:10px;padding:12px;margin-bottom:12px;}
+  .btn-sm{background:#f1ecfb;color:var(--ink);font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer;border:none;font-family:inherit;font-weight:700;}
+  .btn-sm:hover{background:var(--lav);color:#fff;}
+  .btn-danger{background:#fce4e4;color:#b91c1c;}
+  .btn-danger:hover{background:#b91c1c;color:#fff;}
+  .sender-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .token-area{background:#fdf6ff;border:1px solid #e8d9f8;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;}
+  .token-area input{border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-family:inherit;font-size:12px;width:280px;}
+  .gh-msg{font-size:12px;font-weight:700;margin-left:8px;}
+  .gh-msg.ok{color:var(--ok);}
+  .gh-msg.err{color:#dc2626;}
 </style>
 </head>
 <body>
@@ -48,11 +58,34 @@
 
   <div class="card">
     <div class="sender-box">
-      <label class="fld" style="font-weight:700;color:var(--ink);">보내는사람 (모든 건에 공통 적용)</label>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        <label class="fld" style="font-weight:700;color:var(--ink);margin:0;">보내는사람 (모든 건에 공통 적용)</label>
+        <div class="sender-row">
+          <select id="senderPick" class="pick" style="min-width:130px;font-size:13px;" onchange="pickSender(this.value)">
+            <option value="">-- 거래처 선택 --</option>
+          </select>
+          <button class="btn-sm" onclick="saveSender()">＋ 거래처 저장</button>
+          <button class="btn-sm btn-danger" id="delBtn" style="display:none;" onclick="deleteSender()">삭제</button>
+          <span id="ghMsg" class="gh-msg"></span>
+        </div>
+      </div>
       <div class="row3">
-        <div><label class="fld">보내는사람</label><input class="txt" id="sName" value="정규학"></div>
-        <div><label class="fld">휴대폰번호</label><input class="txt" id="sPhone" value="010-5331-7365"></div>
-        <div><label class="fld">보내는주소</label><input class="txt" id="sAddr" value="성검로 443"></div>
+        <div><label class="fld">보내는사람</label><input class="txt" id="sName" placeholder="이름"></div>
+        <div><label class="fld">휴대폰번호</label><input class="txt" id="sPhone" placeholder="010-0000-0000"></div>
+        <div><label class="fld">보내는주소</label><input class="txt" id="sAddr" placeholder="도로명 주소"></div>
+      </div>
+      <div class="token-area" id="tokenArea" style="display:none;">
+        <strong>GitHub 토큰 입력</strong> (저장·삭제 시 1회만 입력, 이 브라우저에 기억됨)<br>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;align-items:center;">
+          <input type="password" id="ghToken" placeholder="ghp_..." autocomplete="off">
+          <button class="btn-sm" onclick="saveToken()">토큰 저장</button>
+          <button class="btn-sm btn-danger" onclick="clearToken()">토큰 삭제</button>
+        </div>
+        <div id="tokenHint" style="color:var(--gray);margin-top:5px;">토큰 권한: <code>Contents: Read and write</code> (Fine-grained PAT 추천)</div>
+      </div>
+      <div style="margin-top:6px;display:flex;gap:8px;align-items:center;">
+        <button class="btn-sm" onclick="toggleToken()" id="tokenToggle">🔑 GitHub 토큰 관리</button>
+        <span id="tokenStatus" style="font-size:12px;color:var(--gray);"></span>
       </div>
       <div style="margin-top:8px;">
         <label class="fld">품목명 (비워두면 문자 상단 줄에서 자동 인식 — 예: "호랑이콩 8키로")</label>
@@ -114,8 +147,141 @@
 </div>
 
 <script>
-const CONFM_KEY = "U01TX0FVVEgyMDI2MDYyMzIwNTQwOTExOTQ5NDA="; // 검색API 키
+const CONFM_KEY = "U01TX0FVVEgyMDI2MDYyMzIwNTQwOTExOTQ5NDA=";
+const GH_OWNER = "sky72865397";
+const GH_REPO  = "jungbong";
+const GH_PATH  = "senders.json";
+const GH_RAW   = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/main/${GH_PATH}`;
+const GH_API   = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
+
 let rows = [];
+let senders = [];     // [{name,phone,addr}]
+let ghFileSha = null; // GitHub 파일의 현재 sha (수정 시 필요)
+
+// ── 토큰 관리 ───────────────────────────────────────────
+function getToken(){ return localStorage.getItem('gh_token') || ''; }
+function saveToken(){ const v=document.getElementById('ghToken').value.trim(); if(!v) return; localStorage.setItem('gh_token',v); setGhMsg('토큰 저장됨','ok'); updateTokenStatus(); }
+function clearToken(){ localStorage.removeItem('gh_token'); document.getElementById('ghToken').value=''; setGhMsg('토큰 삭제됨','ok'); updateTokenStatus(); }
+function toggleToken(){ const a=document.getElementById('tokenArea'); a.style.display=a.style.display==='none'?'block':'none'; }
+function updateTokenStatus(){ document.getElementById('tokenStatus').textContent=getToken()?'토큰 저장됨 ✓':'토큰 없음 (읽기만 가능)'; }
+
+// ── GitHub senders.json 로드 ─────────────────────────────
+async function loadSenders(){
+  try{
+    const r=await fetch(GH_RAW+'?t='+Date.now());
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    senders=await r.json();
+    // sha는 API에서 가져옴 (쓰기 때 필요하므로 별도)
+    fetchSha();
+  }catch(e){ senders=[]; }
+  renderDropdown();
+}
+async function fetchSha(){
+  try{
+    const token=getToken();
+    const headers={'Accept':'application/vnd.github+json'};
+    if(token) headers['Authorization']='Bearer '+token;
+    const r=await fetch(GH_API,{headers});
+    if(!r.ok) return;
+    const d=await r.json();
+    ghFileSha=d.sha||null;
+  }catch(e){}
+}
+
+function renderDropdown(){
+  const sel=document.getElementById('senderPick');
+  const prev=sel.value;
+  sel.innerHTML='<option value="">-- 거래처 선택 --</option>';
+  senders.forEach((s,i)=>{
+    const o=document.createElement('option');
+    o.value=String(i);
+    o.textContent=s.name;
+    sel.appendChild(o);
+  });
+  if(prev!=='' && senders[Number(prev)]) sel.value=prev;
+  updateDelBtn();
+}
+
+function pickSender(val){
+  document.getElementById('delBtn').style.display='none';
+  if(val===''||val===null) return;
+  const s=senders[Number(val)];
+  if(!s) return;
+  document.getElementById('sName').value=s.name||'';
+  document.getElementById('sPhone').value=s.phone||'';
+  document.getElementById('sAddr').value=s.addr||'';
+  document.getElementById('delBtn').style.display='';
+}
+function updateDelBtn(){
+  const v=document.getElementById('senderPick').value;
+  document.getElementById('delBtn').style.display=(v!=='')?'':'none';
+}
+
+// ── 거래처 저장 (추가 or 수정) ──────────────────────────
+async function saveSender(){
+  const name=document.getElementById('sName').value.trim();
+  const phone=document.getElementById('sPhone').value.trim();
+  const addr=document.getElementById('sAddr').value.trim();
+  if(!name){ alert('보내는사람 이름을 입력하세요.'); return; }
+  const token=getToken();
+  if(!token){ setGhMsg('GitHub 토큰이 필요합니다. 아래 토큰 관리를 눌러 입력하세요.','err'); document.getElementById('tokenArea').style.display='block'; return; }
+  const sel=document.getElementById('senderPick');
+  const idx=sel.value!==''?Number(sel.value):-1;
+  if(idx>=0 && senders[idx].name===name){
+    // 수정
+    senders[idx]={name,phone,addr};
+  } else {
+    // 이름 중복 체크
+    const dup=senders.findIndex(s=>s.name===name);
+    if(dup>=0){ senders[dup]={name,phone,addr}; }
+    else { senders.push({name,phone,addr}); }
+  }
+  await pushSenders(token);
+}
+
+// ── 거래처 삭제 ─────────────────────────────────────────
+async function deleteSender(){
+  const sel=document.getElementById('senderPick');
+  const idx=Number(sel.value);
+  if(isNaN(idx)||idx<0||!senders[idx]) return;
+  if(!confirm(senders[idx].name+' 거래처를 삭제할까요?')) return;
+  const token=getToken();
+  if(!token){ setGhMsg('GitHub 토큰이 필요합니다.','err'); document.getElementById('tokenArea').style.display='block'; return; }
+  senders.splice(idx,1);
+  await pushSenders(token);
+  sel.value='';
+  document.getElementById('delBtn').style.display='none';
+}
+
+// ── GitHub에 senders.json 업로드 ────────────────────────
+async function pushSenders(token){
+  setGhMsg('저장 중...','');
+  try{
+    if(!ghFileSha) await fetchSha(); // sha 없으면 다시 시도
+    const content=btoa(unescape(encodeURIComponent(JSON.stringify(senders,null,2))));
+    const body={message:'update senders.json',content};
+    if(ghFileSha) body.sha=ghFileSha;
+    const r=await fetch(GH_API,{
+      method:'PUT',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+      body:JSON.stringify(body)
+    });
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.message||r.status);
+    ghFileSha=d.content&&d.content.sha||ghFileSha;
+    setGhMsg('GitHub 저장 완료 ✓','ok');
+    renderDropdown();
+    // 새로 추가한 경우 해당 항목 선택
+    const newIdx=senders.findIndex(s=>s.name===document.getElementById('sName').value.trim());
+    if(newIdx>=0){ document.getElementById('senderPick').value=String(newIdx); updateDelBtn(); }
+  }catch(e){ setGhMsg('저장 실패: '+e.message,'err'); }
+}
+
+function setGhMsg(msg,cls){
+  const el=document.getElementById('ghMsg');
+  el.textContent=msg; el.className='gh-msg'+(cls?' '+cls:'');
+  if(cls==='ok') setTimeout(()=>{ if(el.textContent===msg) el.textContent=''; },3000);
+}
 
 // 문자 파싱: 상단 품목줄 + (이름(휴대폰) ...) + 다음 이름 전까지 모든 줄 = 주소
 function parseInput(text){
@@ -349,6 +515,12 @@ function exportXlsx(){
 }
 function escH(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 function escA(s){return (s||'').replace(/"/g,'&quot;');}
+
+// ── 초기화 ──────────────────────────────────────────────
+(function init(){
+  updateTokenStatus();
+  loadSenders();
+})();
 </script>
 </body>
 </html>
