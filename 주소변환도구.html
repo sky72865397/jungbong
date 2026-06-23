@@ -13,7 +13,16 @@
   header{display:flex;align-items:center;gap:12px;margin-bottom:4px;}
   .panda{font-size:30px;}
   h1{font-size:21px;margin:0;}
-  .sub{color:var(--gray);font-size:13px;margin:4px 0 18px;}
+  .sub{color:var(--gray);font-size:13px;margin:4px 0 0;}
+
+  /* 탭 */
+  .tabs{display:flex;gap:0;margin:18px 0 0;border-bottom:2px solid var(--line);}
+  .tab-btn{background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;padding:10px 22px;font-size:14px;font-weight:700;color:var(--gray);cursor:pointer;border-radius:0;font-family:inherit;}
+  .tab-btn.active{color:var(--ink);border-bottom-color:var(--lav);}
+  .tab-btn:hover:not(.active){color:var(--ink);}
+  .tab-pane{display:none;padding-top:18px;}
+  .tab-pane.active{display:block;}
+
   .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 1px 4px rgba(120,90,180,.06);}
   button{cursor:pointer;border:none;border-radius:9px;font-weight:700;font-family:inherit;font-size:14px;padding:10px 18px;}
   .btn-main{background:linear-gradient(135deg,var(--lav),var(--pink));color:#fff;}
@@ -21,14 +30,20 @@
   .btn-main:disabled{opacity:.5;cursor:default;}
   .btn-xl{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:15px;padding:12px 22px;}
   .btn-ghost{background:#f1ecfb;color:var(--ink);}
+  .btn-sm{background:#f1ecfb;color:var(--ink);font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer;border:none;font-family:inherit;font-weight:700;}
+  .btn-sm:hover{background:var(--lav);color:#fff;}
+  .btn-danger{background:#fce4e4;color:#b91c1c;}
+  .btn-danger:hover{background:#b91c1c;color:#fff;}
+
   label.fld{font-size:12px;color:var(--gray);display:block;margin:0 0 4px;}
   input.txt{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px;font-family:inherit;font-size:13px;}
   .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:6px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px;}
+
   table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12.5px;}
   th,td{border:1px solid var(--line);padding:6px 7px;text-align:left;vertical-align:top;}
   th{background:#f3eefc;font-weight:700;white-space:nowrap;}
   td.idx{text-align:center;width:30px;color:var(--gray);}
-  .jibun{color:var(--gray);font-size:11.5px;}
   .road{font-weight:600;}
   .road.empty{color:#c084a8;font-weight:400;}
   select.pick,input.cell{width:100%;border:1px solid var(--line);border-radius:6px;padding:4px;font-family:inherit;font-size:11.5px;}
@@ -39,16 +54,22 @@
   .spin{font-size:12px;color:var(--lav);font-weight:700;}
   .done{color:var(--ok);font-weight:700;font-size:12px;}
   .sender-box{background:#fbf5ff;border:1px dashed var(--lav);border-radius:10px;padding:12px;margin-bottom:12px;}
-  .btn-sm{background:#f1ecfb;color:var(--ink);font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer;border:none;font-family:inherit;font-weight:700;}
-  .btn-sm:hover{background:var(--lav);color:#fff;}
-  .btn-danger{background:#fce4e4;color:#b91c1c;}
-  .btn-danger:hover{background:#b91c1c;color:#fff;}
-  .sender-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-  .token-area{background:#fdf6ff;border:1px solid #e8d9f8;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;}
-  .token-area input{border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-family:inherit;font-size:12px;width:280px;}
-  .gh-msg{font-size:12px;font-weight:700;margin-left:8px;}
+
+  /* 거래처 탭 */
+  .sender-list{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+  .sender-item{display:grid;grid-template-columns:1fr 1fr 2fr auto;gap:10px;align-items:center;background:#f9f5ff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;}
+  .sender-item .s-name{font-weight:700;font-size:14px;}
+  .sender-item .s-phone{color:var(--gray);font-size:13px;}
+  .sender-item .s-addr{color:var(--gray);font-size:12px;}
+  .sender-item .s-btns{display:flex;gap:6px;justify-content:flex-end;}
+  .add-form{background:#fff;border:2px dashed var(--lav);border-radius:12px;padding:16px;margin-top:8px;}
+  .add-form .row3{margin-bottom:10px;}
+  .gh-msg{font-size:12px;font-weight:700;}
   .gh-msg.ok{color:var(--ok);}
   .gh-msg.err{color:#dc2626;}
+  .token-area{background:#fdf6ff;border:1px solid #e8d9f8;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;}
+  .token-area input{border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-family:inherit;font-size:12px;width:280px;}
+  .empty-state{text-align:center;padding:40px;color:var(--gray);font-size:14px;}
 </style>
 </head>
 <body>
@@ -56,46 +77,35 @@
   <header><span class="panda">🐼</span><h1>택배 주소 자동변환 → 엑셀</h1></header>
   <p class="sub">문자 붙여넣기 → 주문자·품목·박스 자동분리 + 주소 도로명 변환 → 엑셀 다운로드까지 한 번에</p>
 
-  <div class="card">
-    <div class="sender-box">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-        <label class="fld" style="font-weight:700;color:var(--ink);margin:0;">보내는사람 (모든 건에 공통 적용)</label>
-        <div class="sender-row">
-          <select id="senderPick" class="pick" style="min-width:130px;font-size:13px;" onchange="pickSender(this.value)">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('convert')">📦 주소변환</button>
+    <button class="tab-btn" onclick="switchTab('senders')">🏢 거래처 관리</button>
+  </div>
+
+  <!-- ══ 탭1: 주소변환 ══════════════════════════════════ -->
+  <div class="tab-pane active" id="tab-convert">
+    <div class="card">
+      <div class="sender-box">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+          <label class="fld" style="font-weight:700;color:var(--ink);margin:0;">보내는사람 (모든 건에 공통 적용)</label>
+          <select id="senderPick" class="pick" style="min-width:140px;font-size:13px;" onchange="pickSender(this.value)">
             <option value="">-- 거래처 선택 --</option>
           </select>
-          <button class="btn-sm" onclick="saveSender()">＋ 거래처 저장</button>
-          <button class="btn-sm btn-danger" id="delBtn" style="display:none;" onclick="deleteSender()">삭제</button>
-          <span id="ghMsg" class="gh-msg"></span>
+        </div>
+        <div class="row3">
+          <div><label class="fld">보내는사람</label><input class="txt" id="sName" placeholder="이름"></div>
+          <div><label class="fld">휴대폰번호</label><input class="txt" id="sPhone" placeholder="010-0000-0000"></div>
+          <div><label class="fld">보내는주소</label><input class="txt" id="sAddr" placeholder="도로명 주소"></div>
+        </div>
+        <div>
+          <label class="fld">품목명 (비워두면 문자 상단 줄에서 자동 인식 — 예: "호랑이콩 8키로")</label>
+          <input class="txt" id="itemTop" placeholder="예: 호랑이콩 8키로  (비워두면 자동)">
         </div>
       </div>
-      <div class="row3">
-        <div><label class="fld">보내는사람</label><input class="txt" id="sName" placeholder="이름"></div>
-        <div><label class="fld">휴대폰번호</label><input class="txt" id="sPhone" placeholder="010-0000-0000"></div>
-        <div><label class="fld">보내는주소</label><input class="txt" id="sAddr" placeholder="도로명 주소"></div>
-      </div>
-      <div class="token-area" id="tokenArea" style="display:none;">
-        <strong>GitHub 토큰 입력</strong> (저장·삭제 시 1회만 입력, 이 브라우저에 기억됨)<br>
-        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;align-items:center;">
-          <input type="password" id="ghToken" placeholder="ghp_..." autocomplete="off">
-          <button class="btn-sm" onclick="saveToken()">토큰 저장</button>
-          <button class="btn-sm btn-danger" onclick="clearToken()">토큰 삭제</button>
-        </div>
-        <div id="tokenHint" style="color:var(--gray);margin-top:5px;">토큰 권한: <code>Contents: Read and write</code> (Fine-grained PAT 추천)</div>
-      </div>
-      <div style="margin-top:6px;display:flex;gap:8px;align-items:center;">
-        <button class="btn-sm" onclick="toggleToken()" id="tokenToggle">🔑 GitHub 토큰 관리</button>
-        <span id="tokenStatus" style="font-size:12px;color:var(--gray);"></span>
-      </div>
-      <div style="margin-top:8px;">
-        <label class="fld">품목명 (비워두면 문자 상단 줄에서 자동 인식 — 예: "호랑이콩 8키로")</label>
-        <input class="txt" id="itemTop" placeholder="예: 호랑이콩 8키로  (비워두면 자동)">
-      </div>
-    </div>
 
-    <strong style="font-size:14px;">① 문자 내용 붙여넣기</strong>
-    <p class="hint" style="margin:4px 0 8px;">상단 품목줄 + 「주문자(휴대폰)」 줄 + 그 아래 주소(여러 줄 OK). 입금·메모는 자동 제거됩니다.</p>
-    <textarea id="input">6/22 호랑이콩 택배 8키로 12건 13박스
+      <strong style="font-size:14px;">① 문자 내용 붙여넣기</strong>
+      <p class="hint" style="margin:4px 0 8px;">상단 품목줄 + 「주문자(휴대폰)」 줄 + 그 아래 주소(여러 줄 OK). 입금·메모는 자동 제거됩니다.</p>
+      <textarea id="input">6/22 호랑이콩 택배 8키로 12건 13박스
 김은(01067795446)8키로 입금
 인천 영종대로 27번길 9 창보밀레시티 513동 303호
 한명옥(01027760081)8키로
@@ -120,29 +130,78 @@
 부산시 해운대구 센텀중앙로142 센텀파크 205동 2001호
 천대일(010 8592 5362)8키로
 포항시 남구 오천읍 철강로830번길 202</textarea>
-    <div class="tools">
-      <button class="btn-main" id="goBtn" onclick="run()">🔄 분석 + 주소 자동변환</button>
-      <button class="btn-ghost" onclick="document.getElementById('input').value='';rows=[];render();">비우기</button>
-      <span id="status" class="spin"></span>
+      <div class="tools">
+        <button class="btn-main" id="goBtn" onclick="run()">🔄 분석 + 주소 자동변환</button>
+        <button class="btn-ghost" onclick="document.getElementById('input').value='';rows=[];render();">비우기</button>
+        <span id="status" class="spin"></span>
+      </div>
+    </div>
+
+    <div class="card" id="tableCard" style="display:none;">
+      <strong style="font-size:14px;">② 결과 확인 <span id="progress" class="hint" style="margin:0;"></span></strong>
+      <div id="reviewBar" style="display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 4px;font-size:12.5px;"></div>
+      <p class="hint">⚠ 표시된 줄만 확인하세요. 나머지는 자동 변환이 정상입니다. 모든 칸 직접 수정 가능.</p>
+      <div style="overflow-x:auto;">
+      <table id="tbl"><thead><tr>
+        <th class="idx">#</th><th>주문자</th><th>휴대폰번호</th><th>품목명</th><th>박스</th>
+        <th style="min-width:260px;">도로명주소(신주소)</th><th>상세주소</th>
+      </tr></thead><tbody></tbody></table>
+      </div>
+      <div class="tools">
+        <button class="btn-xl" onclick="exportXlsx()">📥 엑셀로 저장 (xlsx)</button>
+        <span id="copyMsg" class="done"></span>
+      </div>
+      <p class="hint">엑셀 양식: 번호 / 보내는사람 / 휴대폰번호 / 보내는주소 / 주문자 / 휴대폰번호 / 품목명 / 박스 / 받는주소(도로명+상세)</p>
     </div>
   </div>
 
-  <div class="card" id="tableCard" style="display:none;">
-    <strong style="font-size:14px;">② 결과 확인 <span id="progress" class="hint" style="margin:0;"></span></strong>
-    <div id="reviewBar" style="display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 4px;font-size:12.5px;"></div>
-    <p class="hint">⚠ 표시된 줄만 확인하세요. 나머지는 자동 변환이 정상입니다. 모든 칸 직접 수정 가능.</p>
-    <div style="overflow-x:auto;">
-    <table id="tbl"><thead><tr>
-      <th class="idx">#</th><th>주문자</th><th>휴대폰번호</th><th>품목명</th><th>박스</th>
-      <th style="min-width:260px;">도로명주소(신주소)</th><th>상세주소</th>
-    </tr></thead><tbody></tbody></table>
-    </div>
-    <div class="tools">
-      <button class="btn-xl" onclick="exportXlsx()">📥 엑셀로 저장 (xlsx)</button>
-      <span id="copyMsg" class="done"></span>
-    </div>
-    <p class="hint">엑셀 양식: 번호 / 보내는사람 / 휴대폰번호 / 보내는주소 / 주문자 / 휴대폰번호 / 품목명 / 박스 / 받는주소(도로명+상세)</p>
+  <!-- ══ 탭2: 거래처 관리 ══════════════════════════════ -->
+  <div class="tab-pane" id="tab-senders">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <strong style="font-size:15px;">거래처 목록</strong>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span id="ghMsg2" class="gh-msg"></span>
+          <button class="btn-sm" id="loadingBtn" onclick="loadSenders(true)">↻ 새로고침</button>
+          <button class="btn-main" style="font-size:13px;padding:8px 14px;" onclick="showAddForm()">＋ 새 거래처 추가</button>
+        </div>
+      </div>
 
+      <!-- 추가/수정 폼 -->
+      <div class="add-form" id="addForm" style="display:none;">
+        <strong id="addFormTitle" style="font-size:14px;">새 거래처 추가</strong>
+        <div class="row3" style="margin-top:10px;">
+          <div><label class="fld">이름 *</label><input class="txt" id="fName" placeholder="예: 정규학"></div>
+          <div><label class="fld">휴대폰번호</label><input class="txt" id="fPhone" placeholder="010-0000-0000"></div>
+          <div><label class="fld">보내는주소</label><input class="txt" id="fAddr" placeholder="도로명 주소"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn-main" style="font-size:13px;padding:8px 16px;" onclick="submitForm()">저장</button>
+          <button class="btn-ghost" style="font-size:13px;padding:8px 14px;" onclick="hideAddForm()">취소</button>
+          <span id="formMsg" class="gh-msg"></span>
+        </div>
+      </div>
+
+      <!-- 거래처 목록 -->
+      <div class="sender-list" id="senderList">
+        <div class="empty-state">불러오는 중...</div>
+      </div>
+    </div>
+
+    <!-- 토큰 관리 -->
+    <div class="card">
+      <strong style="font-size:14px;">🔑 GitHub 토큰 관리</strong>
+      <p class="hint" style="margin:4px 0 10px;">거래처 추가·수정·삭제 시 필요합니다. 이 브라우저에만 저장되며 외부로 전송되지 않습니다.</p>
+      <div class="token-area">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <input type="password" id="ghToken" placeholder="ghp_..." autocomplete="off">
+          <button class="btn-sm" onclick="saveToken()">저장</button>
+          <button class="btn-sm btn-danger" onclick="clearToken()">삭제</button>
+          <span id="tokenStatus" style="font-size:12px;color:var(--gray);"></span>
+        </div>
+        <div style="color:var(--gray);margin-top:6px;font-size:11px;">토큰 권한: <code>Contents: Read and write</code> (Fine-grained PAT 추천) · <a href="https://github.com/settings/tokens?type=beta" target="_blank" style="color:var(--lav);">토큰 발급 →</a></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -155,197 +214,218 @@ const GH_RAW   = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/main/
 const GH_API   = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
 
 let rows = [];
-let senders = [];     // [{name,phone,addr}]
-let ghFileSha = null; // GitHub 파일의 현재 sha (수정 시 필요)
+let senders = [];
+let ghFileSha = null;
+let editingIdx = -1; // 수정 중인 인덱스 (-1 = 신규)
 
-// ── 토큰 관리 ───────────────────────────────────────────
-function getToken(){ return localStorage.getItem('gh_token') || ''; }
-function saveToken(){ const v=document.getElementById('ghToken').value.trim(); if(!v) return; localStorage.setItem('gh_token',v); setGhMsg('토큰 저장됨','ok'); updateTokenStatus(); }
-function clearToken(){ localStorage.removeItem('gh_token'); document.getElementById('ghToken').value=''; setGhMsg('토큰 삭제됨','ok'); updateTokenStatus(); }
-function toggleToken(){ const a=document.getElementById('tokenArea'); a.style.display=a.style.display==='none'?'block':'none'; }
-function updateTokenStatus(){ document.getElementById('tokenStatus').textContent=getToken()?'토큰 저장됨 ✓':'토큰 없음 (읽기만 가능)'; }
+// ── 탭 전환 ──────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['convert','senders'][i]===name));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active',p.id==='tab-'+name));
+}
 
-// ── GitHub senders.json 로드 ─────────────────────────────
-async function loadSenders(){
+// ── 토큰 ─────────────────────────────────────────────────
+function getToken(){ return localStorage.getItem('gh_token')||''; }
+function saveToken(){
+  const v=document.getElementById('ghToken').value.trim();
+  if(!v) return;
+  localStorage.setItem('gh_token',v);
+  updateTokenStatus();
+  setFormMsg('토큰 저장됨 ✓','ok');
+}
+function clearToken(){
+  localStorage.removeItem('gh_token');
+  document.getElementById('ghToken').value='';
+  updateTokenStatus();
+}
+function updateTokenStatus(){
+  const el=document.getElementById('tokenStatus');
+  el.textContent=getToken()?'저장됨 ✓':'없음 (읽기만 가능)';
+  el.style.color=getToken()?'var(--ok)':'var(--gray)';
+}
+
+// ── senders.json 로드 ────────────────────────────────────
+async function loadSenders(showMsg){
+  if(showMsg) document.getElementById('loadingBtn').textContent='로딩 중...';
   try{
     const r=await fetch(GH_RAW+'?t='+Date.now());
     if(!r.ok) throw new Error('HTTP '+r.status);
     senders=await r.json();
-    // sha는 API에서 가져옴 (쓰기 때 필요하므로 별도)
     fetchSha();
   }catch(e){ senders=[]; }
   renderDropdown();
+  renderSenderList();
+  if(showMsg) document.getElementById('loadingBtn').textContent='↻ 새로고침';
 }
 async function fetchSha(){
   try{
-    const token=getToken();
     const headers={'Accept':'application/vnd.github+json'};
-    if(token) headers['Authorization']='Bearer '+token;
+    if(getToken()) headers['Authorization']='Bearer '+getToken();
     const r=await fetch(GH_API,{headers});
     if(!r.ok) return;
-    const d=await r.json();
-    ghFileSha=d.sha||null;
+    ghFileSha=(await r.json()).sha||null;
   }catch(e){}
 }
 
+// ── 드롭다운 (탭1) ───────────────────────────────────────
 function renderDropdown(){
   const sel=document.getElementById('senderPick');
   const prev=sel.value;
   sel.innerHTML='<option value="">-- 거래처 선택 --</option>';
   senders.forEach((s,i)=>{
     const o=document.createElement('option');
-    o.value=String(i);
-    o.textContent=s.name;
+    o.value=String(i); o.textContent=s.name;
     sel.appendChild(o);
   });
-  if(prev!=='' && senders[Number(prev)]) sel.value=prev;
-  updateDelBtn();
+  if(prev!==''&&senders[Number(prev)]) sel.value=prev;
 }
-
 function pickSender(val){
-  document.getElementById('delBtn').style.display='none';
   if(val===''||val===null) return;
   const s=senders[Number(val)];
   if(!s) return;
   document.getElementById('sName').value=s.name||'';
   document.getElementById('sPhone').value=s.phone||'';
   document.getElementById('sAddr').value=s.addr||'';
-  document.getElementById('delBtn').style.display='';
-}
-function updateDelBtn(){
-  const v=document.getElementById('senderPick').value;
-  document.getElementById('delBtn').style.display=(v!=='')?'':'none';
 }
 
-// ── 거래처 저장 (추가 or 수정) ──────────────────────────
-async function saveSender(){
-  const name=document.getElementById('sName').value.trim();
-  const phone=document.getElementById('sPhone').value.trim();
-  const addr=document.getElementById('sAddr').value.trim();
-  if(!name){ alert('보내는사람 이름을 입력하세요.'); return; }
-  const token=getToken();
-  if(!token){ setGhMsg('GitHub 토큰이 필요합니다. 아래 토큰 관리를 눌러 입력하세요.','err'); document.getElementById('tokenArea').style.display='block'; return; }
-  const sel=document.getElementById('senderPick');
-  const idx=sel.value!==''?Number(sel.value):-1;
-  if(idx>=0 && senders[idx].name===name){
-    // 수정
-    senders[idx]={name,phone,addr};
+// ── 거래처 목록 렌더 (탭2) ──────────────────────────────
+function renderSenderList(){
+  const el=document.getElementById('senderList');
+  if(!senders.length){
+    el.innerHTML='<div class="empty-state">등록된 거래처가 없습니다.<br>위 버튼으로 추가해보세요.</div>';
+    return;
+  }
+  el.innerHTML='';
+  senders.forEach((s,i)=>{
+    const div=document.createElement('div');
+    div.className='sender-item';
+    div.innerHTML=`
+      <div class="s-name">${escH(s.name)}</div>
+      <div class="s-phone">${escH(s.phone||'-')}</div>
+      <div class="s-addr">${escH(s.addr||'-')}</div>
+      <div class="s-btns">
+        <button class="btn-sm" onclick="editSender(${i})">수정</button>
+        <button class="btn-sm btn-danger" onclick="deleteSender(${i})">삭제</button>
+      </div>`;
+    el.appendChild(div);
+  });
+}
+
+// ── 추가/수정 폼 ─────────────────────────────────────────
+function showAddForm(idx){
+  editingIdx = (idx !== undefined) ? idx : -1;
+  const form=document.getElementById('addForm');
+  document.getElementById('addFormTitle').textContent = editingIdx>=0 ? '거래처 수정' : '새 거래처 추가';
+  if(editingIdx>=0){
+    const s=senders[editingIdx];
+    document.getElementById('fName').value=s.name||'';
+    document.getElementById('fPhone').value=s.phone||'';
+    document.getElementById('fAddr').value=s.addr||'';
   } else {
-    // 이름 중복 체크
+    document.getElementById('fName').value='';
+    document.getElementById('fPhone').value='';
+    document.getElementById('fAddr').value='';
+  }
+  setFormMsg('','');
+  form.style.display='block';
+  document.getElementById('fName').focus();
+}
+function hideAddForm(){ document.getElementById('addForm').style.display='none'; editingIdx=-1; }
+function editSender(idx){ showAddForm(idx); document.getElementById('addForm').scrollIntoView({behavior:'smooth',block:'nearest'}); }
+
+async function submitForm(){
+  const name=document.getElementById('fName').value.trim();
+  const phone=document.getElementById('fPhone').value.trim();
+  const addr=document.getElementById('fAddr').value.trim();
+  if(!name){ setFormMsg('이름을 입력하세요.','err'); return; }
+  if(!getToken()){ setFormMsg('GitHub 토큰이 필요합니다. 아래 토큰 관리에서 입력하세요.','err'); return; }
+
+  if(editingIdx>=0){
+    senders[editingIdx]={name,phone,addr};
+  } else {
     const dup=senders.findIndex(s=>s.name===name);
     if(dup>=0){ senders[dup]={name,phone,addr}; }
     else { senders.push({name,phone,addr}); }
   }
-  await pushSenders(token);
+  const ok=await pushSenders();
+  if(ok){ hideAddForm(); renderDropdown(); renderSenderList(); }
 }
 
-// ── 거래처 삭제 ─────────────────────────────────────────
-async function deleteSender(){
-  const sel=document.getElementById('senderPick');
-  const idx=Number(sel.value);
-  if(isNaN(idx)||idx<0||!senders[idx]) return;
-  if(!confirm(senders[idx].name+' 거래처를 삭제할까요?')) return;
-  const token=getToken();
-  if(!token){ setGhMsg('GitHub 토큰이 필요합니다.','err'); document.getElementById('tokenArea').style.display='block'; return; }
+async function deleteSender(idx){
+  if(!confirm(`"${senders[idx].name}" 거래처를 삭제할까요?`)) return;
+  if(!getToken()){ setGhMsg2('GitHub 토큰이 필요합니다.','err'); return; }
   senders.splice(idx,1);
-  await pushSenders(token);
-  sel.value='';
-  document.getElementById('delBtn').style.display='none';
+  const ok=await pushSenders();
+  if(ok){ renderDropdown(); renderSenderList(); }
 }
 
-// ── GitHub에 senders.json 업로드 ────────────────────────
-async function pushSenders(token){
-  setGhMsg('저장 중...','');
+// ── GitHub 저장 ──────────────────────────────────────────
+async function pushSenders(){
+  setFormMsg('저장 중...','');
   try{
-    if(!ghFileSha) await fetchSha(); // sha 없으면 다시 시도
+    if(!ghFileSha) await fetchSha();
     const content=btoa(unescape(encodeURIComponent(JSON.stringify(senders,null,2))));
     const body={message:'update senders.json',content};
     if(ghFileSha) body.sha=ghFileSha;
     const r=await fetch(GH_API,{
       method:'PUT',
-      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+      headers:{'Authorization':'Bearer '+getToken(),'Content-Type':'application/json','Accept':'application/vnd.github+json'},
       body:JSON.stringify(body)
     });
     const d=await r.json();
     if(!r.ok) throw new Error(d.message||r.status);
     ghFileSha=d.content&&d.content.sha||ghFileSha;
-    setGhMsg('GitHub 저장 완료 ✓','ok');
-    renderDropdown();
-    // 새로 추가한 경우 해당 항목 선택
-    const newIdx=senders.findIndex(s=>s.name===document.getElementById('sName').value.trim());
-    if(newIdx>=0){ document.getElementById('senderPick').value=String(newIdx); updateDelBtn(); }
-  }catch(e){ setGhMsg('저장 실패: '+e.message,'err'); }
+    setFormMsg('저장 완료 ✓','ok');
+    setGhMsg2('저장 완료 ✓','ok');
+    return true;
+  }catch(e){ setFormMsg('저장 실패: '+e.message,'err'); return false; }
 }
 
-function setGhMsg(msg,cls){
-  const el=document.getElementById('ghMsg');
+function setFormMsg(msg,cls){
+  const el=document.getElementById('formMsg');
+  el.textContent=msg; el.className='gh-msg'+(cls?' '+cls:'');
+}
+function setGhMsg2(msg,cls){
+  const el=document.getElementById('ghMsg2');
   el.textContent=msg; el.className='gh-msg'+(cls?' '+cls:'');
   if(cls==='ok') setTimeout(()=>{ if(el.textContent===msg) el.textContent=''; },3000);
 }
 
-// 문자 파싱: 상단 품목줄 + (이름(휴대폰) ...) + 다음 이름 전까지 모든 줄 = 주소
+// ── 주소변환 ─────────────────────────────────────────────
 function parseInput(text){
   const raw=text.split('\n').map(s=>s.trim()).filter(Boolean);
   const isRecipient=(s)=>/^.+?\(\s*[\d\s.\-]+\s*\)/.test(s);
-
-  // 1) 상단 품목 추출 (첫 수취인 줄 이전의 줄에서)
   let topItem='';
   let firstIdx=raw.findIndex(isRecipient);
   if(firstIdx>0){
-    const header=raw.slice(0,firstIdx).join(' ');
-    // 날짜/건수/박스 제거하고 품목+무게만 추출
-    let h=header.replace(/\d+\/\d+/g,'')          // 6/22
-                .replace(/택배/g,'')
-                .replace(/\d+\s*건/g,'')
-                .replace(/\d+\s*박스/g,'')
-                .trim();
-    // "호랑이콩 8키로" 형태로 정리
-    const wt=h.match(/(\d+\s*(?:kg|키로|킬로|박스)?)/i);
+    let h=raw.slice(0,firstIdx).join(' ').replace(/\d+\/\d+/g,'').replace(/택배/g,'').replace(/\d+\s*건/g,'').replace(/\d+\s*박스/g,'').trim();
     topItem=h.replace(/\s+/g,' ').trim();
   }
-  // 입력칸의 품목 필드가 있으면 우선
   const itemField=(document.getElementById('itemTop')||{}).value;
-  if(itemField && itemField.trim()) topItem=itemField.trim();
-
-  // 2) 수취인 단위로 묶기
+  if(itemField&&itemField.trim()) topItem=itemField.trim();
   const idxs=[];
   raw.forEach((l,i)=>{ if(isRecipient(l)) idxs.push(i); });
   const out=[];
   for(let k=0;k<idxs.length;k++){
-    const start=idxs[k];
-    const end=(k+1<idxs.length)?idxs[k+1]:raw.length;
-    const head=raw[start];
-    const m=head.match(/^(.+?)\s*\(\s*([\d\s.\-]+)\s*\)\s*(.*)$/);
+    const start=idxs[k], end=(k+1<idxs.length)?idxs[k+1]:raw.length;
+    const m=raw[start].match(/^(.+?)\s*\(\s*([\d\s.\-]+)\s*\)\s*(.*)$/);
     if(!m) continue;
-    const name=m[1].trim();
-    const phone=normPhone(m[2]);
+    const name=m[1].trim(), phone=normPhone(m[2]);
     let rest=stripMemo(m[3]);
-    // 박스
     let box='1';
     const bm=rest.match(/(\d+)\s*박스/);
     if(bm){ box=bm[1]; rest=rest.replace(/\s*\d+\s*박스/,'').trim(); }
-    // 품목: 줄 안에 품목 단서 있으면 그걸, 없으면 상단 품목
     let item=rest.trim();
-    if(!item || /^\d+\s*(kg|키로|킬로)?$/i.test(item)){
-      // 무게만 있거나 비면 상단 품목 사용 (+ 무게가 줄에 있으면 합치기)
-      const w=item.match(/\d+\s*(?:kg|키로|킬로)/i);
-      item = topItem || item;
-    }
-    // 주소: start+1 ~ end-1 의 줄들을 합침 (메모 제거)
+    if(!item||/^\d+\s*(kg|키로|킬로)?$/i.test(item)) item=topItem||item;
     let addrLines=[];
-    for(let j=start+1;j<end;j++){ addrLines.push(stripMemo(raw[j])); }
-    let addr=addrLines.join(' ').replace(/\s+/g,' ').trim();
-    out.push({name,phone,item,box,addrRaw:addr});
+    for(let j=start+1;j<end;j++) addrLines.push(stripMemo(raw[j]));
+    out.push({name,phone,item,box,addrRaw:addrLines.join(' ').replace(/\s+/g,' ').trim()});
   }
   return out;
 }
-// 입금/이름입금/괄호메모 등 제거
 function stripMemo(s){
   if(!s) return '';
-  return s.replace(/\([^)]*입금[^)]*\)/g,'')   // (최은정입금)
-          .replace(/\S*입금/g,'')              // 최충경입금 / 입금
-          .replace(/\s+/g,' ')
-          .trim();
+  return s.replace(/\([^)]*입금[^)]*\)/g,'').replace(/\S*입금/g,'').replace(/\s+/g,' ').trim();
 }
 function normPhone(s){
   const d=(s||'').replace(/[^\d]/g,'');
@@ -353,12 +433,9 @@ function normPhone(s){
   if(d.length===10) return d.slice(0,3)+'-'+d.slice(3,6)+'-'+d.slice(6);
   return s.trim();
 }
-// 시/도 ~ 도로명+번호 까지만 추출 (그 뒤 단지명·동·호 제거)
 function extractRoad(s){
   if(!s) return '';
-  // "온중로22"→"온중로 22", 단 "830번길"은 건드리지 않음
   let t=s.replace(/(로|길)(\d)/g,'$1 $2').replace(/\s+/g,' ').trim();
-  // 번길 우선 매칭 (예: 철강로830번길 202)
   let m=t.match(/^(.*?(?:로|길)\s*\d+번길\s*\d+(?:-\d+)?)/);
   if(m) return m[1].trim();
   m=t.match(/^(.*?(?:로|길)\s*\d+(?:-\d+)?)/);
@@ -375,7 +452,6 @@ function splitDetail(line){
   if(m&&m[1].trim().length>4) return {base:m[1].trim(),detail:m[2].trim()};
   return {base:line,detail:''};
 }
-
 function jsonp(url){
   return new Promise((resolve,reject)=>{
     const cb='_juso_'+Math.random().toString(36).slice(2);
@@ -398,7 +474,6 @@ async function search(keyword){
   if(r.common&&r.common.errorCode&&r.common.errorCode!=='0') return {err:r.common.errorCode+' '+r.common.errorMessage,list:[]};
   return {err:null,list:(r.juso||[])};
 }
-
 async function run(){
   const parsed=parseInput(document.getElementById('input').value);
   rows=parsed.map(p=>{const sp=splitDetail(p.addrRaw);return {...p,base:sp.base,detail:sp.detail,road:'',cands:[],err:''};});
@@ -408,23 +483,11 @@ async function run(){
     document.getElementById('status').textContent='변환 중... '+(i+1)+'/'+rows.length;
     try{
       let res=await search(rows[i].base);
-      // 재시도1: 아파트/단지명 제거
-      if(res.list.length===0){
-        const looser=rows[i].base.replace(/\s*\S*아파트.*$/,'').trim();
-        if(looser&&looser!==rows[i].base) res=await search(looser);
-      }
-      // 재시도2: 도로명+번호만 추출 (예: "...온중로22 용화동 주공..." → "충남 아산시 온중로 22")
-      if(res.list.length===0){
-        const rd=extractRoad(rows[i].base);
-        if(rd && rd!==rows[i].base) res=await search(rd);
-      }
-      // 재시도3: 맨 끝 단어(상호·건물명) 떼기
+      if(res.list.length===0){ const l=rows[i].base.replace(/\s*\S*아파트.*$/,'').trim(); if(l&&l!==rows[i].base) res=await search(l); }
+      if(res.list.length===0){ const rd=extractRoad(rows[i].base); if(rd&&rd!==rows[i].base) res=await search(rd); }
       if(res.list.length===0){
         const parts=rows[i].base.split(/\s+/);
-        if(parts.length>2){
-          const r2=await search(parts.slice(0,-1).join(' '));
-          if(r2.list.length>0){res=r2;const tail=parts[parts.length-1];rows[i].detail=(tail+(rows[i].detail?(' '+rows[i].detail):'')).trim();}
-        }
+        if(parts.length>2){ const r2=await search(parts.slice(0,-1).join(' ')); if(r2.list.length>0){res=r2;const tail=parts[parts.length-1];rows[i].detail=(tail+(rows[i].detail?(' '+rows[i].detail):'')).trim();} }
       }
       if(res.err) rows[i].err=res.err;
       rows[i].cands=res.list;
@@ -435,40 +498,29 @@ async function run(){
   document.getElementById('status').textContent='';
   document.getElementById('goBtn').disabled=false;
 }
-
-// 변환 결과가 의심스러운지 자동 판별 (원본의 시/도·구·동 핵심어가 변환결과에 없으면 의심)
 function isSuspect(r){
-  if(!r.road) return true; // 미변환
+  if(!r.road) return true;
   const src=(r.addrRaw||r.base||'');
-  // 원본에서 '구','시','군','동','읍','면' 으로 끝나는 핵심 지명 토큰 추출
   const toks=(src.match(/[가-힣]+(?:구|시|군|읍|면|동)/g)||[]);
   for(const t of toks){
-    // 동(洞)은 도로명 변환 시 사라질 수 있으니 시/군/구만 엄격 체크
-    if(/(시|군|구)$/.test(t) && !r.road.includes(t.replace(/특별자치도|특별시|광역시/,''))){
-      // 시/도 표기 차이 보정: 핵심 두 글자라도 포함되면 통과
+    if(/(시|군|구)$/.test(t)&&!r.road.includes(t.replace(/특별자치도|특별시|광역시/,''))){
       const core=t.replace(/(시|군|구)$/,'');
-      if(core.length>=2 && !r.road.includes(core)) return true;
+      if(core.length>=2&&!r.road.includes(core)) return true;
     }
   }
   return false;
 }
-
 function render(){
   const tb=document.querySelector('#tbl tbody'); tb.innerHTML='';
   rows.forEach((r,i)=>{
     const suspect=isSuspect(r);
     let roadCell;
     if(r.cands&&r.cands.length>1){
-      roadCell='<select class="pick" onchange="rows['+i+'].road=this.value;render()">'
-        +r.cands.map(c=>'<option value="'+escA(c.roadAddr)+'"'+(c.roadAddr===r.road?' selected':'')+'>'+escH(c.roadAddr)+'</option>').join('')+'</select>';
+      roadCell='<select class="pick" onchange="rows['+i+'].road=this.value;render()">'+r.cands.map(c=>'<option value="'+escA(c.roadAddr)+'"'+(c.roadAddr===r.road?' selected':'')+'>'+escH(c.roadAddr)+'</option>').join('')+'</select>';
     }else if(r.road){ roadCell='<span class="road">'+escH(r.road)+'</span>'; }
     else{ roadCell='<span class="road empty">'+(r.err?('실패:'+escH(r.err)):'미변환')+'</span>'; }
-    // 의심 줄에만 원본 비교줄 표시
-    let compare='';
-    if(suspect){
-      compare='<div style="margin-top:3px;font-size:11px;color:var(--warn);">⚠ 원본: '+escH(r.addrRaw||r.base||'')+' — 확인 필요</div>';
-    }
-    const bg = suspect ? ' style="background:#fff7f3;"' : '';
+    let compare=suspect?'<div style="margin-top:3px;font-size:11px;color:var(--warn);">⚠ 원본: '+escH(r.addrRaw||r.base||'')+' — 확인 필요</div>':'';
+    const bg=suspect?' style="background:#fff7f3;"':'';
     const tr=document.createElement('tr');
     tr.innerHTML='<td class="idx"'+bg+'>'+(suspect?'⚠':'')+(i+1)+'</td>'
       +'<td'+bg+'><input class="cell" value="'+escA(r.name)+'" onchange="rows['+i+'].name=this.value"></td>'
@@ -482,41 +534,28 @@ function render(){
   prog(); reviewBar();
 }
 function reviewBar(){
-  const total=rows.length;
-  const suspect=rows.filter(isSuspect).length;
-  const ok=total-suspect;
-  const bar=document.getElementById('reviewBar');
-  bar.innerHTML=
-     '<span style="background:#eef9f0;color:#16803c;padding:3px 9px;border-radius:7px;font-weight:700;">정상 자동변환 '+ok+'</span>'
+  const total=rows.length, suspect=rows.filter(isSuspect).length, ok=total-suspect;
+  document.getElementById('reviewBar').innerHTML=
+    '<span style="background:#eef9f0;color:#16803c;padding:3px 9px;border-radius:7px;font-weight:700;">정상 자동변환 '+ok+'</span>'
     +(suspect>0?'<span style="background:#fff3e6;color:#b45309;padding:3px 9px;border-radius:7px;font-weight:700;">⚠ 확인 필요 '+suspect+'</span>':'<span style="background:#eef9f0;color:#16803c;padding:3px 9px;border-radius:7px;font-weight:700;">전부 정상 ✓</span>')
     +'<span style="color:var(--gray);align-self:center;">전체 '+total+'건</span>';
 }
 function prog(){const d=rows.filter(r=>r.road).length;document.getElementById('progress').textContent=' — '+d+' / '+rows.length+' 주소변환 완료';}
-
 function exportXlsx(){
-  const sName=document.getElementById('sName').value;
-  const sPhone=document.getElementById('sPhone').value;
-  const sAddr=document.getElementById('sAddr').value;
-  const head=['번호','보내는사람','보내는사람 휴대폰번호','보내는주소','주문자','휴대폰번호','품목명','박스','받는주소'];
-  const data=[head];
-  rows.forEach((r,i)=>{
-    const full=(r.road+(r.detail?(' '+r.detail):'')).trim() || r.base;
-    data.push([i+1,sName,sPhone,sAddr,r.name,r.phone,r.item,r.box,full]);
-  });
+  const sName=document.getElementById('sName').value, sPhone=document.getElementById('sPhone').value, sAddr=document.getElementById('sAddr').value;
+  const data=[['번호','보내는사람','보내는사람 휴대폰번호','보내는주소','주문자','휴대폰번호','품목명','박스','받는주소']];
+  rows.forEach((r,i)=>data.push([i+1,sName,sPhone,sAddr,r.name,r.phone,r.item,r.box,(r.road+(r.detail?(' '+r.detail):'')).trim()||r.base]));
   const ws=XLSX.utils.aoa_to_sheet(data);
   ws['!cols']=[{wch:5},{wch:11},{wch:16},{wch:12},{wch:11},{wch:16},{wch:13},{wch:7},{wch:52}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'택배');
-  const today=new Date();
-  const yy=String(today.getFullYear()).slice(2),mm=String(today.getMonth()+1).padStart(2,'0'),dd=String(today.getDate()).padStart(2,'0');
-  XLSX.writeFile(wb, yy+mm+dd+'-택배.xlsx');
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'택배');
+  const t=new Date(), yy=String(t.getFullYear()).slice(2), mm=String(t.getMonth()+1).padStart(2,'0'), dd=String(t.getDate()).padStart(2,'0');
+  XLSX.writeFile(wb,yy+mm+dd+'-택배.xlsx');
   document.getElementById('copyMsg').textContent='✓ 엑셀 저장됨';
   setTimeout(()=>document.getElementById('copyMsg').textContent='',2500);
 }
 function escH(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 function escA(s){return (s||'').replace(/"/g,'&quot;');}
 
-// ── 초기화 ──────────────────────────────────────────────
 (function init(){
   updateTokenStatus();
   loadSenders();
