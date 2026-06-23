@@ -400,15 +400,31 @@ function parseInput(text){
   const itemOverride = (document.getElementById('itemTop')||{}).value;
 
   // 빈 줄 기준으로 블록 분리
-  const blocks = text.split(/\n[ \t]*\n/).map(b =>
+  const rawBlocks = text.split(/\n[ \t]*\n/).map(b =>
     b.split('\n').map(s=>s.trim()).filter(Boolean)
   ).filter(b=>b.length);
 
+  // 블록 안에 수취인이 여러 명이면 수취인 줄 기준으로 서브블록으로 쪼개기
+  // (빈 줄 없는 구형 포맷 대응: 이름 다음 줄이 주소)
+  const blocks = [];
+  for(const block of rawBlocks){
+    const recCount = block.filter(isRecipient).length;
+    if(recCount <= 1){ blocks.push(block); continue; }
+    // 수취인 여러 명 → 수취인 줄마다 끊어서 [수취인, ...다음수취인전줄] 묶음
+    let cur = [];
+    for(const line of block){
+      if(isRecipient(line) && cur.find(isRecipient)){
+        blocks.push(cur); cur = [];
+      }
+      cur.push(line);
+    }
+    if(cur.length) blocks.push(cur);
+  }
+
   let curProduct = '';
-  // 수동 입력 품목 우선
   if(itemOverride && itemOverride.trim()) curProduct = itemOverride.trim();
 
-  // 첫 번째 수취인 이전 헤더에서 품목 추출 (itemOverride 없을 때)
+  // 첫 번째 수취인 이전 헤더에서 품목 추출
   if(!curProduct){
     for(const block of blocks){
       if(block.find(isRecipient)) break;
@@ -422,7 +438,6 @@ function parseInput(text){
   for(const block of blocks){
     const recLine = block.find(isRecipient);
     if(!recLine){
-      // 품목명 갱신: 블록 전체 또는 개별 줄
       const joined = block.join(' ').trim();
       if(isProductOnly(joined)) curProduct = joined;
       else { for(const l of block) if(isProductOnly(l)){ curProduct=l; break; } }
@@ -432,7 +447,6 @@ function parseInput(text){
     // 같은 블록 안에 품목명 줄 있으면 먼저 curProduct 갱신
     for(const l of block) if(l !== recLine && isProductOnly(l)) curProduct = l;
 
-    // 이름(전화) 줄 파싱
     const m = recLine.match(/^(.+?)\s*\(\s*([\d\s.\-]+)\s*\)\s*(.*)$/);
     if(!m) continue;
     const name = m[1].trim();
@@ -443,7 +457,7 @@ function parseInput(text){
     const bm = rest.match(/(\d+)\s*박스/);
     if(bm){ box = bm[1]; rest = rest.replace(/\s*\d+\s*박스/,'').trim(); }
 
-    // 주소: 품목명 줄·수취인 줄 제외, 맨 앞 ( 제거
+    // 주소: 품목명·수취인 줄 제외, 맨 앞 ( 제거
     const addrParts = block
       .filter(l => l !== recLine && !isProductOnly(l))
       .map(l => stripMemo(l).replace(/^\(+\s*/,'').trim())
