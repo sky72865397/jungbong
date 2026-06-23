@@ -422,13 +422,17 @@ function parseInput(text){
   for(const block of blocks){
     const recLine = block.find(isRecipient);
     if(!recLine){
-      // 품목명 갱신 체크
+      // 품목명 갱신: 블록 전체 또는 개별 줄
       const joined = block.join(' ').trim();
       if(isProductOnly(joined)) curProduct = joined;
+      else { for(const l of block) if(isProductOnly(l)){ curProduct=l; break; } }
       continue;
     }
 
-    // 이 블록의 이름(전화) 줄 파싱
+    // 같은 블록 안에 품목명 줄 있으면 먼저 curProduct 갱신
+    for(const l of block) if(l !== recLine && isProductOnly(l)) curProduct = l;
+
+    // 이름(전화) 줄 파싱
     const m = recLine.match(/^(.+?)\s*\(\s*([\d\s.\-]+)\s*\)\s*(.*)$/);
     if(!m) continue;
     const name = m[1].trim();
@@ -439,8 +443,11 @@ function parseInput(text){
     const bm = rest.match(/(\d+)\s*박스/);
     if(bm){ box = bm[1]; rest = rest.replace(/\s*\d+\s*박스/,'').trim(); }
 
-    // 주소: 같은 블록 내 나머지 줄 (수취인 줄 제외)
-    const addrParts = block.filter(l=>l!==recLine).map(stripMemo).filter(Boolean);
+    // 주소: 품목명 줄·수취인 줄 제외, 맨 앞 ( 제거
+    const addrParts = block
+      .filter(l => l !== recLine && !isProductOnly(l))
+      .map(l => stripMemo(l).replace(/^\(+\s*/,'').trim())
+      .filter(Boolean);
     const addrRaw = addrParts.join(' ').replace(/\s+/g,' ').trim();
 
     const item = buildItem(curProduct, rest);
@@ -562,9 +569,14 @@ function render(){
   const tb=document.querySelector('#tbl tbody'); tb.innerHTML='';
   rows.forEach((r,i)=>{
     const suspect=isSuspect(r);
+    // 도로명주소: 변환됐으면 텍스트, 미변환이면 원본주소를 편집 가능 입력칸으로
     let roadCell;
     if(r.road){ roadCell='<span class="road">'+escH(r.road)+'</span>'; }
-    else{ roadCell='<span class="road empty">'+(r.err?('실패:'+escH(r.err)):'미변환')+'</span>'; }
+    else{
+      const fallback = r.addrRaw || r.base || '';
+      roadCell='<input class="cell" style="color:#b45309;font-weight:600;" value="'+escA(fallback)+'" placeholder="주소 직접 입력" onchange="rows['+i+'].road=this.value;render()">'
+        +(r.err?'<div style="font-size:11px;color:#dc2626;">실패:'+escH(r.err)+'</div>':'');
+    }
     let compare=suspect?'<div style="margin-top:3px;font-size:11px;color:var(--warn);">⚠ 원본: '+escH(r.addrRaw||r.base||'')+' — 확인 필요</div>':'';
     const bg=suspect?' style="background:#fff7f3;"':'';
     const tr=document.createElement('tr');
