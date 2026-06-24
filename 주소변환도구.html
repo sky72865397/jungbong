@@ -397,6 +397,11 @@ const isRecipient = s => /^.+?\(\s*[\d\s.\-]+\s*\)/.test(s);
 // 빈 줄 기준으로 블록 분리 → 블록 내 이름(전화) 줄 찾아 파싱
 // 주소가 이름 앞에 와도 같은 블록에 있으면 정상 처리
 function parseInput(text){
+  // TSV 감지: 탭이 포함된 줄이 많으면 엑셀/스프레드시트 붙여넣기로 판단
+  const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+  const tabLines = lines.filter(l=>l.split('\t').length >= 5);
+  if(tabLines.length >= 2) return parseTsv(lines);
+
   const itemOverride = (document.getElementById('itemTop')||{}).value;
 
   // 빈 줄 기준으로 블록 분리
@@ -476,6 +481,30 @@ function isProductOnly(s){
   if(/\d+\/\d+/.test(s)||/택배|주소|입금/.test(s)) return false;
   if(/(시|군|구|로|길)\s*\d/.test(s)||/\d+동\s*\d+호/.test(s)) return false;
   return /^[가-힣a-zA-Z\s]{2,}$/.test(s.trim());
+}
+
+// TSV(탭 구분) 파싱: 번호·보내는사람·전화·주소·주문자·전화·품목·박스·받는주소
+function parseTsv(lines){
+  const out = [];
+  for(const line of lines){
+    const c = line.split('\t');
+    if(c.length < 8) continue;
+    const [no, sName, sPhone, sAddr, name, phone, item, box, ...addrParts] = c;
+    if(no==='번호'||no===' '||no==='#') continue; // 헤더 스킵
+    const addr = addrParts.join(' ').trim() || c[8]||'';
+    if(!name.trim() && !addr.trim()) continue;
+    out.push({
+      name: name.trim(),
+      phone: phone.trim(),
+      item: item.trim(),
+      box: (box||'1').trim(),
+      addrRaw: addr.trim(),
+      _sName: sName.trim(),
+      _sPhone: sPhone.trim(),
+      _sAddr: sAddr.trim()
+    });
+  }
+  return out;
 }
 
 // 품목+무게 조합 (이미 품목명 포함된 경우 그대로, 숫자만이면 currentProduct와 합침)
@@ -614,9 +643,12 @@ function reviewBar(){
 }
 function prog(){const d=rows.filter(r=>r.road).length;document.getElementById('progress').textContent=' — '+d+' / '+rows.length+' 주소변환 완료';}
 function exportXlsx(){
-  const sName=document.getElementById('sName').value, sPhone=document.getElementById('sPhone').value, sAddr=document.getElementById('sAddr').value;
+  const defSName=document.getElementById('sName').value, defSPhone=document.getElementById('sPhone').value, defSAddr=document.getElementById('sAddr').value;
   const data=[['번호','보내는사람','보내는사람 휴대폰번호','보내는주소','주문자','휴대폰번호','품목명','박스','받는주소']];
-  rows.forEach((r,i)=>data.push([i+1,sName,sPhone,sAddr,r.name,r.phone,r.item,r.box,(r.road+(r.detail?(' '+r.detail):'')).trim()||r.base]));
+  rows.forEach((r,i)=>{
+    const sName=r._sName||defSName, sPhone=r._sPhone||defSPhone, sAddr=r._sAddr||defSAddr;
+    data.push([i+1,sName,sPhone,sAddr,r.name,r.phone,r.item,r.box,(r.road+(r.detail?(' '+r.detail):'')).trim()||r.addrRaw||r.base]);
+  });
   const ws=XLSX.utils.aoa_to_sheet(data);
   ws['!cols']=[{wch:5},{wch:11},{wch:16},{wch:12},{wch:11},{wch:16},{wch:13},{wch:7},{wch:52}];
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'택배');
